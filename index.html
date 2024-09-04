@@ -1,72 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Pronunciation Practice Tool</title>
-    <!-- Link to the CSS file -->
+    <title>AI 发音练习工具</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="icon" href="path/to/favicon.ico" type="image/x-icon">
+    <script src="https://unpkg.com/wavesurfer.js"></script>
 </head>
 <body>
-    <!-- Navigation Bar -->
     <nav>
-        <div class="logo">AI Practice</div>
+        <div class="logo">AI 练习</div>
         <ul class="nav-links">
-            <li><a href="#home">Home</a></li>
-            <li><a href="#ai-voice">AI Voice</a></li>
-            <li><a href="#record">Record</a></li>
-            <li><a href="#analysis">Analysis</a></li>
-            <li><a href="#feedback">Feedback</a></li>
+            <li><a href="#home" data-text="首页">首页</a></li>
+            <li><a href="#ai-voice" data-text="AI 语音">AI 语音</a></li>
+            <li><a href="#record" data-text="录音">录音</a></li>
+            <li><a href="#analysis" data-text="分析">分析</a></li>
+            <li><a href="#feedback" data-text="反馈">反馈</a></li>
         </ul>
     </nav>
 
-    <!-- Main Content Area -->
     <main>
-        <!-- Home Section -->
         <section id="home" class="section">
-            <h1>Welcome to the AI Pronunciation Practice Tool!</h1>
-            <button onclick="startPractice()">Start Practice</button>
+            <h1><span class="welcome-text">欢迎使用</span> <span class="ai-text">AI 发音练习工具</span></h1>
+            <div class="introduction">
+                <p>1. 选择我们推荐的英文文章或输入文本，我们将提供ai发音音频</p>
+                <p>2. 在页面的录音部分，您可以生成自己的作品</p>
+                <p>3. 通过比较两个文件之间发音的差异，AI将帮忙指出如何做到更好</p>
+                <p>4. 在分析部分您将看到我们对您的发音建议</p>
+            </div>
         </section>
 
-        <!-- AI Voice Section -->
         <section id="ai-voice" class="section">
-            <h2>AI Character Voiceover</h2>
-            <textarea id="text-input" placeholder="Enter your sentence here..."></textarea>
-            <button onclick="generateAIVoice()">Generate AI Voiceover</button>
+            <h2>AI 角色配音</h2>
+            <textarea id="text-input" placeholder="在此输入您的句子..."></textarea>
+            <button onclick="generateAIVoice()">生成AI配音</button>
             <audio id="ai-audio" controls></audio>
+
+            <div class="articles-container">
+                <h3>英文文章</h3>
+                <ul id="articles-list"></ul>
+            </div>
         </section>
 
-        <!-- Personal Recording Section -->
         <section id="record" class="section">
-            <h2>Personal Recording</h2>
-            <button onclick="startRecording()">Record</button>
-            <button onclick="stopRecording()">Stop</button>
+            <h2>个人录音</h2>
             <audio id="personal-audio" controls></audio>
-            <button onclick="uploadRecording()">Upload Recording</button>
+            <div class="record-buttons">
+                <button class="icon-button" onclick="startRecording()" title="开始录音">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="icon-button" onclick="stopRecording()" title="停止录音">
+                    <i class="fas fa-stop"></i>
+                </button>
+                <button class="icon-button" onclick="uploadRecording()" title="上传录音">
+                    <i class="fas fa-upload"></i>
+                </button>
+            </div>
         </section>
 
-        <!-- Analysis Section -->
         <section id="analysis" class="section">
-            <h2>Comparison and Analysis</h2>
-            <!-- Placeholder for audio waveform comparison -->
+            <h2>对比和分析</h2>
             <div id="waveform-comparison">
-                <p>AI Voice vs. Your Recording</p>
+                <div id="ai-waveform"></div>
+                <div id="personal-waveform"></div>
             </div>
             <div id="feedback">
-                <p>Feedback and Tips will appear here based on the analysis.</p>
+                <p id="analysis-feedback">这里将显示基于分析的反馈和建议。</p>
             </div>
         </section>
 
-        <!-- Feedback Section -->
         <section id="feedback" class="section">
-            <h2>Results and Feedback</h2>
-            <p>Your performance feedback will be shown here.</p>
-            <button onclick="retryRecording()">Re-try Recording</button>
+            <h2>结果和反馈</h2>
+            <p id="performance-feedback">这里将显示您的表现反馈。</p>
+            <button onclick="retryRecording()">重新录音</button>
         </section>
     </main>
 
-    <!-- Link to JavaScript file -->
     <script src="script.js"></script>
 </body>
 </html>
