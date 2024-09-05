@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "name": "ai-pronunciation-tool",
+  "version": "1.0.0",
+  "description": "上传你的声音文件，我们将提供ai配音版本\r 通过比较两个文件之间口语的差异，AI将帮忙指出如何做到更好\r 通过多次说英语来提高你的能力",
+  "main": "aiVoice.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
