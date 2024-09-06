@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,10 +8,15 @@
     <title>AI 发音练习工具</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="icon" href="path/to/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="https://unpkg.com/wavesurfer.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+
+    <!-- 移除了 socket.io.js 的引用 -->
 </head>
+
 <body>
+    <div id="loading-indicator" style="display: none;">加载中...</div>
     <nav>
         <div class="logo">AI 练习</div>
         <ul class="nav-links">
@@ -36,7 +42,8 @@
         <section id="ai-voice" class="section">
             <h2>AI 角色配音</h2>
             <textarea id="text-input" placeholder="在此输入您的句子..."></textarea>
-            <button onclick="generateAIVoice()">生成AI配音</button>
+            <input type="file" id="file-input" accept=".txt" style="display: none;">
+            <button onclick="AudioApp.generateAIVoice()">生成AI配音</button>
             <audio id="ai-audio" controls></audio>
 
             <div class="articles-container">
@@ -47,18 +54,23 @@
 
         <section id="record" class="section">
             <h2>个人录音</h2>
+            <textarea id="record-text-input" placeholder="录音文本将自动同步到这里..."></textarea>
             <audio id="personal-audio" controls></audio>
             <div class="record-buttons">
-                <button class="icon-button" onclick="startRecording()" title="开始录音">
+                <button class="icon-button" onclick="AudioApp.retryRecording()" title="重新录音">
+                    <i class="fas fa-redo"></i>
+                </button>
+                <button class="icon-button" onclick="AudioApp.startRecording()" title="开始录音">
                     <i class="fas fa-microphone"></i>
                 </button>
-                <button class="icon-button" onclick="stopRecording()" title="停止录音">
+                <button class="icon-button" onclick="AudioApp.stopRecording()" title="停止录音">
                     <i class="fas fa-stop"></i>
                 </button>
-                <button class="icon-button" onclick="uploadRecording()" title="上传录音">
+                <button class="icon-button" onclick="AudioApp.uploadRecording()" title="上传录音">
                     <i class="fas fa-upload"></i>
                 </button>
             </div>
+            <div id="record-status"></div>
         </section>
 
         <section id="analysis" class="section">
@@ -69,16 +81,51 @@
             </div>
             <div id="feedback">
                 <p id="analysis-feedback">这里将显示基于分析的反馈和建议。</p>
+                <ul id="improvement-tips"></ul>
+                <ul id="detailed-tips"></ul>
             </div>
         </section>
 
         <section id="feedback" class="section">
             <h2>结果和反馈</h2>
             <p id="performance-feedback">这里将显示您的表现反馈。</p>
-            <button onclick="retryRecording()">重新录音</button>
+            <!-- 移除了重新录音按钮 -->
         </section>
     </main>
 
+    <!-- 在 body 结束标签前 -->
     <script src="script.js"></script>
+    <script src="recording.js"></script>
+    <script src="aiVoice.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化 socket 连接
+            window.socket = io('http://localhost:3000', {
+                transports: ['websocket', 'polling']
+            });
+
+            window.socket.on('connect', () => {
+                console.log('已连接到服务器');
+                // 初始化 AudioApp
+                if (window.AudioApp && window.AudioApp.init) {
+                    window.AudioApp.init();
+                } else {
+                    console.error('AudioApp 或 init 方法未定义');
+                }
+                // 在这里初始化 AI 语音功能
+                if (window.AudioApp && window.AudioApp.initAiVoice) {
+                    window.AudioApp.initAiVoice();
+                } else {
+                    console.error('AudioApp 或 initAiVoice 方法未定义');
+                }
+            });
+
+            window.socket.on('connect_error', (error) => {
+                console.error('连接到服务器失败:', error);
+                alert('无法连接到服务器，请确保服务器正在运行。');
+            });
+        });
+    </script>
 </body>
+
 </html>
