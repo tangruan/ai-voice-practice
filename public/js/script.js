@@ -156,7 +156,7 @@ const AudioApp = (function () {
             const formData = new FormData();
             formData.append('file', audioBlob, 'personalRecording.wav');
 
-            fetch('http://localhost:3000/upload', {  // 修改这里，使用完整的 URL
+            fetch('http://localhost:3000/upload', {
                 method: 'POST',
                 body: formData
             })
@@ -167,7 +167,13 @@ const AudioApp = (function () {
                     return response.json();
                 })
                 .then(data => {
-                    alert(data.message === 'File successfully uploaded' ? "录音上传成功！" : "录音上传失败。");
+                    alert("录音上传成功！");
+                    // 显示反馈
+                    if (data && data.feedback) {
+                        displayFeedback(data.feedback);
+                    } else {
+                        displayFeedback([]); // 传递空数组作为默认值
+                    }
                 })
                 .catch(error => {
                     console.error("上传失败:", error);
@@ -176,6 +182,31 @@ const AudioApp = (function () {
         } else {
             alert("请先录制音频。");
         }
+    }
+
+    function displayFeedback(feedback) {
+        const analysisSection = document.getElementById('analysis');
+        const feedbackElement = analysisSection.querySelector('#analysis-feedback');
+        const tipsList = analysisSection.querySelector('#improvement-tips');
+
+        feedbackElement.textContent = "基于分析的反馈和建议：";
+        tipsList.innerHTML = ''; // 清空现有的提示
+
+        if (Array.isArray(feedback) && feedback.length > 0) {
+            feedback.forEach(tip => {
+                const li = document.createElement('li');
+                li.textContent = tip;
+                tipsList.appendChild(li);
+            });
+        } else {
+            // 如果 feedback 不是数组或为空，显示一个默认消息
+            const li = document.createElement('li');
+            li.textContent = "暂无具体反馈。";
+            tipsList.appendChild(li);
+        }
+
+        // 滚动到分析部分
+        analysisSection.scrollIntoView({ behavior: 'smooth' });
     }
 
     function handleAIVoice(data) {
