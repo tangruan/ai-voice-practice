@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from gtts import gTTS
@@ -11,12 +11,13 @@ app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-AUDIO_DIR = "audio_files"
-TEMP_DIR = "temp"
-if not os.path.exists(AUDIO_DIR):
-    os.makedirs(AUDIO_DIR)
-if not os.path.exists(TEMP_DIR):
-    os.makedirs(TEMP_DIR)
+AUDIO_DIR = os.path.join(os.path.dirname(__file__), '..', 'audio_files')
+TEMP_DIR = os.path.join(os.path.dirname(__file__), '..', 'temp')
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), '..', 'uploads')
+
+for directory in [AUDIO_DIR, TEMP_DIR, UPLOAD_DIR]:
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 @app.route('/')
 def home():
@@ -29,30 +30,21 @@ def generate_voice():
         if not text:
             return jsonify({'error': '未提供文本'}), 400
 
-        # 检查是否有缓存的音频
-        cached_audio_path = os.path.join(AUDIO_DIR, f"{hash(text)}.mp3")
-        if os.path.exists(cached_audio_path):
-            audio_url = request.host_url + 'audio/' + os.path.basename(cached_audio_path)
-            return jsonify({'audio_url': audio_url}), 200
-
         # 生成新的语音文件
         tts = gTTS(text=text, lang='en')
         audio_filename = f"{uuid.uuid4()}.mp3"
         audio_path = os.path.join(AUDIO_DIR, audio_filename)
         tts.save(audio_path)
 
-        audio_url = request.host_url + 'audio/' + audio_filename
+        # 返回音频文件的URL
+        audio_url = f'/audio/{audio_filename}'
         return jsonify({'audio_url': audio_url}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/audio/<filename>', methods=['GET'])
 def serve_audio(filename):
-    audio_path = os.path.join(AUDIO_DIR, filename)
-    if os.path.exists(audio_path):
-        return send_file(audio_path, mimetype='audio/mpeg')
-    else:
-        return jsonify({'error': '文件未找到'}), 404
+    return send_from_directory(AUDIO_DIR, filename, mimetype='audio/mpeg')
 
 @socketio.on('connect')
 def handle_connect():
@@ -110,4 +102,4 @@ def compare_audio(file1_path, file2_path):
     return similarity
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True, port=3000)
+    socketio.run(app, debug=True, port=5000)  # 修改端口为 5000

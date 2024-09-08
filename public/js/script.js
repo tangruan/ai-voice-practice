@@ -36,6 +36,9 @@ const AudioApp = (function () {
         } else {
             console.error('initAiVoice 函数未定义');
         }
+
+        // 添加以下代码来初始化文章列表
+        initializeArticlesList();
     }
 
     function setupSocketListeners() {
@@ -58,18 +61,8 @@ const AudioApp = (function () {
             return;
         }
 
-        const cachedAudio = localStorage.getItem(textInput);
-        if (cachedAudio) {
-            aiAudio.src = cachedAudio;
-            aiAudio.play();
-            if (aiWavesurfer) {
-                aiWavesurfer.load(cachedAudio);
-            }
-            return;
-        }
-
         showLoading();
-        fetch('http://127.0.0.1:3000/generate-voice', {
+        fetch('http://localhost:5000/generate-voice', {  // 修改端口为 5000
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: textInput })
@@ -78,13 +71,12 @@ const AudioApp = (function () {
             .then(data => {
                 hideLoading();
                 if (data.audio_url) {
-                    const absoluteUrl = new URL(data.audio_url, 'http://127.0.0.1:3000').href;
-                    aiAudio.src = absoluteUrl;
+                    const audioUrl = `http://localhost:5000${data.audio_url}`;  // 修改端口为 5000
+                    aiAudio.src = audioUrl;
                     aiAudio.play();
                     if (aiWavesurfer) {
-                        aiWavesurfer.load(absoluteUrl);
+                        aiWavesurfer.load(audioUrl);
                     }
-                    localStorage.setItem(textInput, absoluteUrl);
                 } else {
                     alert("AI配音生成失败。");
                 }
@@ -92,6 +84,7 @@ const AudioApp = (function () {
             .catch(error => {
                 console.error("错误:", error);
                 hideLoading();
+                alert("生成AI配音时出错。");
             });
     }
 
@@ -156,6 +149,8 @@ const AudioApp = (function () {
             const formData = new FormData();
             formData.append('file', audioBlob, 'personalRecording.wav');
 
+            showLoading();
+
             fetch('http://localhost:3000/upload', {
                 method: 'POST',
                 body: formData
@@ -167,15 +162,29 @@ const AudioApp = (function () {
                     return response.json();
                 })
                 .then(data => {
-                    alert("录音上传成功！");
-                    // 显示反馈
-                    if (data && data.feedback) {
-                        displayFeedback(data.feedback);
+                    hideLoading();
+                    console.log("服务器响应:", data); // 添加这行来查看服务器响应
+                    if (data.message === 'File successfully uploaded') {
+                        alert("录音上传成功！");
+                        if (data.feedback) {
+                            if (Array.isArray(data.feedback)) {
+                                displayFeedback(data.feedback);
+                            } else if (typeof data.feedback === 'string') {
+                                displayFeedback([data.feedback]);
+                            } else {
+                                console.error("未收到预期的反馈数据格式");
+                                displayFeedback(["暂无具体反馈。"]);
+                            }
+                        } else {
+                            console.error("未收到反馈数据");
+                            displayFeedback(["暂无具体反馈。"]);
+                        }
                     } else {
-                        displayFeedback([]); // 传递空数组作为默认值
+                        alert("录音上传失败。");
                     }
                 })
                 .catch(error => {
+                    hideLoading();
                     console.error("上传失败:", error);
                     alert("上传时出错。");
                 });
@@ -189,6 +198,11 @@ const AudioApp = (function () {
         const feedbackElement = analysisSection.querySelector('#analysis-feedback');
         const tipsList = analysisSection.querySelector('#improvement-tips');
 
+        if (!feedbackElement || !tipsList) {
+            console.error('未找到反馈显示元素');
+            return;
+        }
+
         feedbackElement.textContent = "基于分析的反馈和建议：";
         tipsList.innerHTML = ''; // 清空现有的提示
 
@@ -199,7 +213,6 @@ const AudioApp = (function () {
                 tipsList.appendChild(li);
             });
         } else {
-            // 如果 feedback 不是数组或为空，显示一个默认消息
             const li = document.createElement('li');
             li.textContent = "暂无具体反馈。";
             tipsList.appendChild(li);
@@ -256,13 +269,46 @@ const AudioApp = (function () {
         // 可以在这里添加其他需要重置的元素或状态
     }
 
+    // 添加以下函数来初始化文章列表
+    function initializeArticlesList() {
+        const articles = [
+            { name: "Life Is Not Perfect", url: "https://gist.githubusercontent.com/tangruan/43ef1a512c296afe022233662d9b5f7a/raw/5eef715e78926bd8d8d35a54f90eed532ba363b9/Life%2520Is%2520%2520Perfect" },
+            { name: "Time doesn't wait", url: "https://gist.githubusercontent.com/tangruan/18cd4471dba701dcc8babab16ee99a70/raw/1e6efa996797f00d9392395779d9ba330a08ce47/Time%2520doesn't%2520wait" },
+            { name: "Always Follow Your Heart", url: "https://gist.githubusercontent.com/tangruan/e88f274684748c740400867cd64d6dbf/raw/66fc88e36d4ff63b5e211660c262864191e9fa21/Always%2520Follow%2520Your%2520Heart" }
+        ];
+
+        const articlesList = document.getElementById('articles-list');
+        articles.forEach(article => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                ${article.name}
+                <button onclick="addArticleToTextInput('${article.url}')">添加</button>
+            `;
+            articlesList.appendChild(li);
+        });
+    }
+
+    // 添加以下函数来处理添加文章到文本框
+    function addArticleToTextInput(url) {
+        fetch(url)
+            .then(response => response.text())
+            .then(text => {
+                document.getElementById('text-input').value = text;
+            })
+            .catch(error => {
+                console.error('获取文章内容时出错:', error);
+                alert('无法加载文章内容,请稍后再试。');
+            });
+    }
+
     return {
         init,
         generateAIVoice,
         startRecording,
         stopRecording,
         uploadRecording,
-        retryRecording
+        retryRecording,
+        addArticleToTextInput // 添加这个新函数
     };
 })();
 

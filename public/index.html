@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI 发音练习工具</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="https://unpkg.com/wavesurfer.js"></script>
@@ -93,13 +93,13 @@
     </main>
 
     <!-- 在 body 结束标签前 -->
-    <script src="script.js"></script>
-    <script src="recording.js"></script>
-    <script src="aiVoice.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/recording.js"></script>
+    <script src="js/aiVoice.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // 初始化 socket 连接
-            window.socket = io('http://localhost:3000', {
+            window.socket = io('http://localhost:5000', {  // 修改端口为 5000
                 transports: ['websocket', 'polling']
             });
 
@@ -124,6 +124,15 @@
                 alert('无法连接到服务器，请确保服务器正在运行。');
             });
         });
+        
+        // 添加这个全局函数以便HTML中的onclick可以调用
+        function addArticleToTextInput(url) {
+            if (window.AudioApp && window.AudioApp.addArticleToTextInput) {
+                window.AudioApp.addArticleToTextInput(url);
+            } else {
+                console.error('AudioApp 或 addArticleToTextInput 方法未定义');
+            }
+        }
     </script>
 </body>
 

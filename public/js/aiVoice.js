@@ -64,7 +64,7 @@ function initAiVoice() {
     }
 
     window.socket.on('aiVoice', (data) => {
-        aiAudio.src = data.audioUrl;
+        aiAudio.src = '/audio/' + data.audioUrl;
     });
 
     // 更新反馈
